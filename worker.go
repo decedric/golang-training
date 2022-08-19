@@ -40,6 +40,7 @@ func buildLogger() *zap.Logger {
 	}
 	return logger
 }
+
 func buildDispatcher() *yarpc.Dispatcher {
 	ch, err := tchannel.NewChannelTransport(tchannel.ServiceName(ClientName))
 	if err != nil {
