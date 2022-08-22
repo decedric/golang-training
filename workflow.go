@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strconv"
 	"time"
 
@@ -18,7 +19,7 @@ func init() {
 
 var WorkflowName string = "fibonacci"
 
-var TotallyPersistentStorage = make(map[string]int)
+var TotallyPersistentStorage = make(map[string]*big.Int)
 
 func startFibonacciWorkflow(ctx workflow.Context, name string, id string) error {
 	currentState := "started"
@@ -39,7 +40,7 @@ func startFibonacciWorkflow(ctx workflow.Context, name string, id string) error 
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("fibonacci workflow started")
-	var result int
+	var result *big.Int
 	err = workflow.ExecuteActivity(ctx, startFibonacciActivity, name).Get(ctx, &result)
 	if err != nil {
 		currentState = "activity failed"
@@ -49,11 +50,11 @@ func startFibonacciWorkflow(ctx workflow.Context, name string, id string) error 
 
 	TotallyPersistentStorage[id] = result
 	currentState = "activity completed"
-	logger.Info("Workflow completed.", zap.String("Result", strconv.Itoa(result)))
+	logger.Info("Workflow completed.")
 	return nil
 }
 
-func startFibonacciActivity(ctx context.Context, number string) (int, error) {
+func startFibonacciActivity(ctx context.Context, number string) (*big.Int, error) {
 	n, err := convertAndCheck(number)
 	if err != nil {
 		panic("please provide a valid number")
@@ -61,19 +62,19 @@ func startFibonacciActivity(ctx context.Context, number string) (int, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("fibonacci activity started")
 	fib := fibonacci(n)
+	// This sleep is used to create some time buffer s.t. the polling service can be tested
 	time.Sleep(15 * time.Second)
 	return fib, nil
 }
 
-func fibonacci(n int) int {
-	var last, current int = 0, 1
+func fibonacci(n int) *big.Int {
+	last, current := big.NewInt(0), big.NewInt(1)
 	if n <= 0 {
-		return 0
+		return big.NewInt(0)
 	}
 	for i := 1; i < n; i++ {
-		temp := current
-		current += last
-		last = temp
+		last.Add(current, last)
+		last, current = current, last
 	}
 	return current
 }

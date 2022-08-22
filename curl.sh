@@ -1,34 +1,33 @@
-select action in run poll end run1 poll1 end1
+select action in start_fibonacci_100 poll_last get_result_last start_fibonacci_choose_number poll_fibonacci_choose_id get_result_fibonacci_choose_id
 do
     case $action in
-        run)
+        start_fibonacci_100)
             content=$(curl -X POST localhost:8080/fibonacci/100)
             id=$(jq -r '.id' <<<"$content")
             jq <<< "$content"
             ;;
-        poll)
+        poll_last)
             content=$(curl -X GET localhost:8080/fibonacci/polling/$id)
             jq <<< "$content"
             ;;
-        end)
+        get_result_last)
             content=$(curl -X GET localhost:8080/fibonacci/$id)
             jq <<< "$content"
             ;;
-        run1)
+        start_fibonacci_choose_number)
             echo "enter fibonacci position to compute: "
             read value
             content=$(curl -X POST localhost:8080/fibonacci/$value)
             id=$(jq -r '.id' <<<"$content")
             jq <<< "$content"
             ;;
-
-        poll1)
+        poll_fibonacci_choose_id)
             echo "enter polling id: "
             read value
             content=$(curl -X GET localhost:8080/fibonacci/polling/$value)
             jq <<< "$content"
             ;;
-        end1)
+        get_result_fibonacci_choose_id)
             echo "enter id: "
             read value
             content=$(curl -X GET localhost:8080/fibonacci/$value)

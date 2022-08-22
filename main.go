@@ -67,7 +67,7 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 		id := c.Params.ByName("id")
 		result := TotallyPersistentStorage[id]
 		c.JSON(http.StatusOK, gin.H{
-			"result": result,
+			"result": result.Text(10),
 		})
 	})
 
