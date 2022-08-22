@@ -18,7 +18,17 @@ func init() {
 
 var WorkflowName string = "fibonacci"
 
-func startFibonacciWorkflow(ctx workflow.Context, name string) error {
+var TotallyPersistentStorage = make(map[string]int)
+
+func startFibonacciWorkflow(ctx workflow.Context, name string, id string) error {
+	currentState := "started"
+	err := workflow.SetQueryHandler(ctx, "current_state", func() (string, error) {
+		return currentState, nil
+	})
+	if err != nil {
+		currentState = "failed to register query handler"
+		return err
+	}
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -30,12 +40,15 @@ func startFibonacciWorkflow(ctx workflow.Context, name string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("fibonacci workflow started")
 	var result int
-	err := workflow.ExecuteActivity(ctx, startFibonacciActivity, name).Get(ctx, &result)
+	err = workflow.ExecuteActivity(ctx, startFibonacciActivity, name).Get(ctx, &result)
 	if err != nil {
+		currentState = "activity failed"
 		logger.Error("Activity failed.", zap.Error(err))
 		return err
 	}
 
+	TotallyPersistentStorage[id] = result
+	currentState = "activity completed"
 	logger.Info("Workflow completed.", zap.String("Result", strconv.Itoa(result)))
 	return nil
 }
@@ -48,6 +61,7 @@ func startFibonacciActivity(ctx context.Context, number string) (int, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("fibonacci activity started")
 	fib := fibonacci(n)
+	time.Sleep(15 * time.Second)
 	return fib, nil
 }
 

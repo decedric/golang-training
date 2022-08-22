@@ -27,7 +27,7 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 			DecisionTaskStartToCloseTimeout: time.Minute,
 		}
 
-		we, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, startFibonacciWorkflow, number)
+		we, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, startFibonacciWorkflow, number, workflowId)
 
 		if err != nil {
 			fmt.Println("Failed to create workflow")
@@ -39,15 +39,36 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 		}
 		c.JSON(http.StatusCreated, gin.H{
 			"address": fmt.Sprintf("fibonacci/polling/%s", workflowId),
+			"id":      workflowId,
 		})
 	})
 
 	r.GET("/fibonacci/polling/:id", func(c *gin.Context) {
-
+		id := c.Params.ByName("id")
+		response, _ := workflowClient.QueryWorkflow(context.Background(), id, "", "current_state")
+		var status string
+		response.Get(&status)
+		if status == "activity completed" {
+			c.JSON(http.StatusFound, gin.H{
+				"address": fmt.Sprintf("fibonacci/%s", id),
+				"id":      id,
+				"status":  status,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"address": fmt.Sprintf("fibonacci/polling/%s", id),
+				"id":      id,
+				"status":  status,
+			})
+		}
 	})
 
 	r.GET("/fibonacci/:id", func(c *gin.Context) {
-
+		id := c.Params.ByName("id")
+		result := TotallyPersistentStorage[id]
+		c.JSON(http.StatusOK, gin.H{
+			"result": result,
+		})
 	})
 
 	return r
