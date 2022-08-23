@@ -9,9 +9,9 @@ $ docker-compose up -d
 ```sh
 $ make build
 ```
-3. Define cadence domain:
+3. Define cadence domain (wait until docker containers are fully deployed):
 ```sh
-$ ./register_domain.sh
+$ make register 
 ```
 4. Run the application:
 ```sh
