@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func setupRouter(workflowClient client.Client) *gin.Engine {
+func SetupRouter(workflowClient client.Client) *gin.Engine {
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
@@ -19,6 +19,9 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 
 	r.POST("/fibonacci/:number", func(c *gin.Context) {
 		number := c.Params.ByName("number")
+		if number[0] == '-' {
+			c.String(http.StatusBadRequest, "Please provide a positive number.")
+		}
 		workflowId := WorkflowName + "_" + uuid.New()
 		workflowOptions := client.StartWorkflowOptions{
 			ID:                              workflowId,
@@ -30,12 +33,10 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 		we, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, startFibonacciWorkflow, number, workflowId)
 
 		if err != nil {
-			fmt.Println("Failed to create workflow")
-			fmt.Println(zap.Error(err))
-			panic("Failed to create workflow.")
+			fmt.Println("Failed to create workflow", zap.Error(err))
+			c.String(http.StatusInternalServerError, "Failed to create workflow.")
 		} else {
 			fmt.Println("Started Workflow", zap.String("WorkflowID", we.ID))
-			fmt.Println(zap.String("RunID", we.RunID))
 		}
 		c.JSON(http.StatusCreated, gin.H{
 			"address": fmt.Sprintf("fibonacci/polling/%s", workflowId),
@@ -72,18 +73,4 @@ func setupRouter(workflowClient client.Client) *gin.Engine {
 	})
 
 	return r
-}
-
-func main() {
-
-	dispatcher := buildDispatcher()
-	domainClient := buildDomainClient(buildServiceClient(dispatcher))
-	domainClient.Describe(context.Background(), Domain)
-	service := buildServiceClient(dispatcher)
-	startWorker(buildLogger(), &service)
-	workflowClient, _ := buildCadenceClient(buildServiceClient(dispatcher))
-
-	r := setupRouter(workflowClient)
-	r.Run(":8080")
-	select {}
 }

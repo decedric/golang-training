@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"go.uber.org/cadence/.gen/go/cadence/workflowserviceclient"
 	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/worker"
@@ -15,6 +16,17 @@ var Domain = "test-domain"
 var TaskListName = "SimpleWorker"
 var ClientName = "cadence-client"
 var CadenceService = "cadence-frontend"
+
+func SetupCadence() client.Client {
+	dispatcher := buildDispatcher()
+	domainClient := buildDomainClient(buildServiceClient(dispatcher))
+	domainClient.Describe(context.Background(), Domain)
+	service := buildServiceClient(dispatcher)
+	startWorker(buildLogger(), &service)
+	workflowClient, _ := buildCadenceClient(buildServiceClient(dispatcher))
+	return workflowClient
+
+}
 
 func buildCadenceClient(service workflowserviceclient.Interface) (client.Client, error) {
 	return client.NewClient(
