@@ -1,4 +1,4 @@
-package main
+package cadence
 
 import (
 	"context"
@@ -13,15 +13,17 @@ import (
 )
 
 func init() {
-	workflow.Register(startFibonacciWorkflow)
+	workflow.Register(StartFibonacciWorkflow)
 	activity.Register(startFibonacciActivity)
 }
 
-var WorkflowName string = "fibonacci"
-
 var TotallyPersistentStorage = make(map[string]*big.Int)
 
-func startFibonacciWorkflow(ctx workflow.Context, name string, id string) error {
+func GetResult(id string) *big.Int {
+	return TotallyPersistentStorage[id]
+}
+
+func StartFibonacciWorkflow(ctx workflow.Context, name string, id string) error {
 	currentState := "started"
 	err := workflow.SetQueryHandler(ctx, "current_state", func() (string, error) {
 		return currentState, nil

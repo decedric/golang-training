@@ -1,20 +1,26 @@
-package main
+package integration_test
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"owt/fibonacci/pkg/api"
+	cad "owt/fibonacci/pkg/cadence"
+	"owt/fibonacci/pkg/config"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 var r *gin.Engine
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
-	workflowClient := SetupCadence()
-	r = SetupRouter(workflowClient)
+	var cfg config.FibonacciConfig
+	cfg.SetupConfig()
+	workflowClient := cad.SetupCadence(&cfg)
+	r = api.SetupRouter(workflowClient, &cfg)
 }
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {

@@ -1,4 +1,4 @@
-package main
+package cadence
 
 import (
 	"math/big"
