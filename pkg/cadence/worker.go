@@ -15,7 +15,10 @@ import (
 func SetupCadence(c *config.FibonacciConfig) *client.Client {
 	dispatcher := buildDispatcher(c)
 	domainClient := buildDomainClient(buildServiceClient(dispatcher, c))
-	domainClient.Describe(context.Background(), c.Domain)
+	_, err := domainClient.Describe(context.Background(), c.Domain)
+	if err != nil {
+		panic("failed to connect domain")
+	}
 	service := buildServiceClient(dispatcher, c)
 	startWorker(buildLogger(), &service, c)
 	workflowClient, _ := buildCadenceClient(buildServiceClient(dispatcher, c), c)

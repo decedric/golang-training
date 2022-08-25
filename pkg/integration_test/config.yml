@@ -1,0 +1,6 @@
+HostPort: "127.0.0.1:7933"
+Domain: "test-domain"
+TaskListName: "fibonacci"
+ClientName: "cadence-client"
+CadenceService: "cadence-frontend"
+WorkflowName: "fibonacci"

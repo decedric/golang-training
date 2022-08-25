@@ -11,5 +11,8 @@ func main() {
 	cfg.SetupConfig()
 	workflowClient := cad.SetupCadence(&cfg)
 	r := api.SetupRouter(workflowClient, &cfg)
-	r.Run(":8080")
+	err := r.Run(":8080")
+	if err != nil {
+		panic("running gin router failed.")
+	}
 }

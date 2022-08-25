@@ -16,7 +16,7 @@ import (
 var r *gin.Engine
 
 func init() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.TestMode)
 	var cfg config.FibonacciConfig
 	cfg.SetupConfig()
 	workflowClient := cad.SetupCadence(&cfg)
@@ -36,7 +36,11 @@ func TestApiStartWorkflow(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, response.Code, "Status should be 201 created.")
 
 	var m map[string]string
-	json.Unmarshal(response.Body.Bytes(), &m)
+	err := json.Unmarshal(response.Body.Bytes(), &m)
+	if err != nil {
+		panic(err)
+	}
+
 	assert.Contains(t, m["address"], "fibonacci/polling", "Address should contain fibonacci/polling")
 	assert.NotNil(t, m["id"], "Id should not be nil")
 }

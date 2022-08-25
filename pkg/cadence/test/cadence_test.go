@@ -21,7 +21,7 @@ func (s *UnitTestSuite) SetupTest() {
 }
 
 func (s *UnitTestSuite) Test_StartFibonacciWorkflow() {
-	s.env.ExecuteWorkflow(c.StartFibonacciWorkflow, "100", "testId")
+	s.env.ExecuteWorkflow(c.StartFibonacciWorkflow, uint(100), "testId")
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 

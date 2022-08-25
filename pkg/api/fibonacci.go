@@ -58,7 +58,7 @@ func (cd *ControllerData) startWorkflow(c *gin.Context) {
 }
 
 type WorkflowId struct {
-	Id string `uri:"id" buiding:"required"`
+	Id string `uri:"id" binding:"required"`
 }
 
 func (cd *ControllerData) pollWorkflow(c *gin.Context) {
@@ -69,19 +69,25 @@ func (cd *ControllerData) pollWorkflow(c *gin.Context) {
 	}
 	response, _ := (*cd.workflowClient).QueryWorkflow(context.Background(), workflowId.Id, "", "current_state")
 	var status string
-	response.Get(&status)
+	err := response.Get(&status)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "fetching status failed.")
+		return
+	}
 	if status == "activity completed" {
 		c.JSON(http.StatusFound, gin.H{
 			"address": fmt.Sprintf("fibonacci/%s", workflowId.Id),
 			"id":      workflowId.Id,
 			"status":  status,
 		})
+		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"address": fmt.Sprintf("fibonacci/polling/%s", workflowId.Id),
 			"id":      workflowId.Id,
 			"status":  status,
 		})
+		return
 	}
 }
 
