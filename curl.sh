@@ -42,7 +42,7 @@ do
             echo "enter fibonacci position to compute: "
             read value
             content=$(curl -X POST -w '{"code": "%{http_code}"}' localhost:8080/fibonacci/$value)
-            print_output "$content" "201"
+            print_output_and_store_id "$content" "201"
             ;;
         poll_fibonacci_choose_id)
             echo "enter polling id: "

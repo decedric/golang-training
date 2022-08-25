@@ -12,6 +12,7 @@ var validate *validator.Validate
 func SetupRouter(workflowClient *client.Client, cfg *config.FibonacciConfig) *gin.Engine {
 	validate = validator.New()
 	r := gin.Default()
-	fibonacciRoutes(r, workflowClient, cfg)
+	r.SetTrustedProxies(nil)
+	setupFibonacciRoutes(r, workflowClient, cfg)
 	return r
 }
