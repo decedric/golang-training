@@ -2,9 +2,7 @@ package cadence
 
 import (
 	"context"
-	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"go.uber.org/cadence/activity"
@@ -23,7 +21,7 @@ func GetResult(id string) *big.Int {
 	return TotallyPersistentStorage[id]
 }
 
-func StartFibonacciWorkflow(ctx workflow.Context, name string, id string) error {
+func StartFibonacciWorkflow(ctx workflow.Context, number uint, id string) error {
 	currentState := "started"
 	err := workflow.SetQueryHandler(ctx, "current_state", func() (string, error) {
 		return currentState, nil
@@ -43,7 +41,7 @@ func StartFibonacciWorkflow(ctx workflow.Context, name string, id string) error 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("fibonacci workflow started")
 	var result *big.Int
-	err = workflow.ExecuteActivity(ctx, startFibonacciActivity, name).Get(ctx, &result)
+	err = workflow.ExecuteActivity(ctx, startFibonacciActivity, number).Get(ctx, &result)
 	if err != nil {
 		currentState = "activity failed"
 		logger.Error("Activity failed.", zap.Error(err))
@@ -56,35 +54,24 @@ func StartFibonacciWorkflow(ctx workflow.Context, name string, id string) error 
 	return nil
 }
 
-func startFibonacciActivity(ctx context.Context, number string) (*big.Int, error) {
-	n, err := convertAndCheck(number)
-	if err != nil {
-		panic("please provide a valid number")
-	}
+func startFibonacciActivity(ctx context.Context, number uint) (*big.Int, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("fibonacci activity started")
-	fib := fibonacci(n)
-	// This sleep is used to create some time buffer s.t. the polling service can be tested
-	time.Sleep(15 * time.Second)
+	fib := fibonacci(number)
+	// This sleep can be uncommented to create some time buffer s.t. the polling service can be tested
+	//time.Sleep(15 * time.Second)
 	return fib, nil
 }
 
-func fibonacci(n int) *big.Int {
+func fibonacci(n uint) *big.Int {
 	last, current := big.NewInt(0), big.NewInt(1)
 	if n <= 0 {
 		return big.NewInt(0)
 	}
-	for i := 1; i < n; i++ {
+	var i uint
+	for i = 1; i < n; i++ {
 		last.Add(current, last)
 		last, current = current, last
 	}
 	return current
-}
-
-func convertAndCheck(number string) (int, error) {
-	n, err := strconv.Atoi(number)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return n, err
 }

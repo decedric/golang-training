@@ -6,7 +6,7 @@ import (
 )
 
 func TestFibonacci(t *testing.T) {
-	n_arr := [5]int{0, 1, 5, 10, 100}
+	n_arr := [5]uint{0, 1, 5, 10, 100}
 	want_arr := [5]big.Int{}
 	want_arr[0].SetString("0", 10)
 	want_arr[0].SetString("1", 10)

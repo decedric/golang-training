@@ -1,10 +1,10 @@
 BINARY_NAME=fibonacci
 
 try:
-	go run ./pkg
+	go run .
 
 build:
-	go build -o ${BINARY_NAME} ./pkg/
+	go build -o ${BINARY_NAME} .
 
 run:
 	./${BINARY_NAME}

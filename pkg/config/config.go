@@ -1,5 +1,11 @@
 package config
 
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
+
 type FibonacciConfig struct {
 	HostPort       string
 	Domain         string
@@ -10,10 +16,15 @@ type FibonacciConfig struct {
 }
 
 func (cfg *FibonacciConfig) SetupConfig() {
-	cfg.HostPort = "127.0.0.1:7933"
-	cfg.Domain = "test-domain"
-	cfg.TaskListName = "fibonacci"
-	cfg.ClientName = "cadence-client"
-	cfg.CadenceService = "cadence-frontend"
-	cfg.WorkflowName = "fibonacci"
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error config file %w", err))
+	}
+	err = viper.Unmarshal(cfg)
+	if err != nil {
+		panic(fmt.Errorf("unable to decode into struct, %w", err))
+	}
 }
